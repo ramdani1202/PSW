@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Rekam</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rekam">
+<meta name="theme-color" content="#15171c">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input{-webkit-user-select:text;user-select:text}
+[hidden]{display:none!important}
+html,body{margin:0;padding:0;position:fixed;top:0;left:0;width:100%;height:100%;overflow:hidden;
+  background:#15171c;color:#ece8e1;font:16px/1.4 "Avenir Next","Helvetica Neue",Helvetica,sans-serif;touch-action:manipulation}
+#app{position:absolute;top:0;left:0;width:100%;height:100%}
+.view{position:absolute;top:0;left:0;right:0;bottom:0;padding:16px 18px;
+  padding-top:calc(16px + constant(safe-area-inset-top));padding-top:calc(16px + env(safe-area-inset-top));
+  padding-bottom:calc(16px + constant(safe-area-inset-bottom));padding-bottom:calc(16px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column}
+h1{font-size:32px;font-weight:700;letter-spacing:-.5px;margin:0}
+h2{font-size:16px;font-weight:600;margin:16px 0 6px;color:#c9c5bd}
+p{margin:0 0 8px;color:#8d93a0;font-size:14px}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.btn{appearance:none;-webkit-appearance:none;border:0;border-radius:12px;padding:14px 16px;font:inherit;font-weight:600;color:#ece8e1;background:#2a2e38}
+.btn:active{opacity:.7}
+.btn.red{background:#c2303a}
+.btn.line{background:transparent;box-shadow:inset 0 0 0 2px #3a404d}
+.btn.sm{padding:8px 13px;border-radius:9px;font-size:14px}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 -18px;padding:0 18px;min-height:0}
+.banner{background:#3a2a1c;color:#f0b94a;border-radius:10px;padding:10px 12px;font-size:13px;margin:8px 0}
+.panel{background:#1f2229;border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:center;margin-top:8px}
+.time{font-size:46px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.bar{height:10px;border-radius:5px;background:#262a33;overflow:hidden;margin:10px 0 6px;width:100%}
+.bar>i{display:block;height:100%;width:0;background:#f0b94a}
+.recbtn{width:92px;height:92px;border-radius:50%;border:4px solid #ece8e1;background:transparent;padding:0;margin:8px 0;display:flex;align-items:center;justify-content:center}
+.recbtn span{display:block;width:66px;height:66px;border-radius:50%;background:#c2303a;transition:all .15s}
+.recbtn.on span{width:34px;height:34px;border-radius:8px}
+.recbtn:active{opacity:.8}
+.seg{display:flex;gap:6px;width:100%;margin:4px 0 8px}
+.seg button{flex:1;appearance:none;-webkit-appearance:none;border:0;border-radius:9px;padding:8px 4px;font:inherit;font-size:13px;font-weight:600;background:#2a2e38;color:#8d93a0}
+.seg button.on{background:#ece8e1;color:#15171c}
+.seg.off{opacity:.4;pointer-events:none}
+.microw{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;font-size:13px;color:#8d93a0}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#555b68;margin-right:6px}
+.dot.on{background:#4ec27a}
+#pbar{background:#1f2229;border-radius:12px;padding:8px 10px;margin-top:10px}
+#pname{font-size:13px;color:#8d93a0;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#player{width:100%;height:36px}
+.item{padding:12px 0;border-bottom:1px solid #262a33}
+.item .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .meta{font-size:13px;color:#8d93a0;margin-bottom:8px}
+.item .acts{display:flex;gap:8px}
+.item .acts .btn{flex:1}
+.empty{padding:20px 0;color:#8d93a0;font-size:14px}
+.back{align-self:flex-start;margin-bottom:8px}
+.code{font-size:56px;font-weight:700;letter-spacing:4px;font-variant-numeric:tabular-nums;margin:18px 0 6px;color:#f0b94a}
+input.num{width:100%;font:700 38px "Avenir Next",sans-serif;letter-spacing:6px;text-align:center;padding:12px;border-radius:12px;border:2px solid #3a404d;background:#1f2229;color:#ece8e1;font-variant-numeric:tabular-nums;margin:6px 0 14px}
+.fileinfo{background:#1f2229;border-radius:12px;padding:12px;margin:8px 0;font-size:14px;word-break:break-all}
+.stat{font-size:14px;color:#8d93a0;min-height:20px}
+.err{color:#ff7a82}
+#toast{position:fixed;left:50%;top:60px;transform:translateX(-50%);max-width:88%;padding:10px 16px;border-radius:10px;background:#ece8e1;color:#15171c;font-weight:600;font-size:14px;z-index:9;opacity:0;pointer-events:none;transition:opacity .2s;text-align:center}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Beranda / perekam -->
+  <section class="view" id="v-home">
+    <div class="head">
+      <div><h1>Rekam</h1><p>Rekam suara, kirim ke telepon lain.</p></div>
+      <button class="btn sm line" id="b-recv">Terima</button>
+    </div>
+    <div class="banner" id="banner" hidden></div>
+    <div class="panel">
+      <div class="time" id="time">00:00</div>
+      <div class="bar"><i id="lvl"></i></div>
+      <button class="recbtn" id="rec" aria-label="Rekam"><span></span></button>
+      <div class="seg" id="q">
+        <button data-r="16000" class="on">Hemat (16 kHz)</button>
+        <button data-r="32000">Jernih (32 kHz)</button>
+      </div>
+      <div class="microw">
+        <span><i class="dot" id="dot"></i><span id="micst">Mikrofon belum aktif</span></span>
+        <button class="btn sm line" id="micbtn">Aktifkan</button>
+      </div>
+    </div>
+    <div id="pbar" hidden><div id="pname"></div><audio id="player" controls></audio></div>
+    <h2>Rekaman</h2>
+    <div class="scroll" id="list"></div>
+  </section>
+
+  <!-- Terima -->
+  <section class="view" id="v-recv" hidden>
+    <button class="btn sm line back" data-back>Kembali</button>
+    <h1>Terima rekaman</h1>
+    <p>Di telepon pengirim, buka Rekam, pilih rekaman, tekan Kirim, lalu masukkan kode ini.</p>
+    <div class="code" id="r-code">------</div>
+    <div class="stat" id="r-status">Menyiapkan kode…</div>
+    <div class="bar"><i id="r-bar"></i></div>
+    <div class="stat" id="r-speed"></div>
+  </section>
+
+  <!-- Kirim -->
+  <section class="view" id="v-send" hidden>
+    <button class="btn sm line back" data-back>Kembali</button>
+    <h1>Kirim rekaman</h1>
+    <div class="fileinfo" id="s-file"></div>
+    <p>Masukkan kode 6 angka dari layar penerima.</p>
+    <input class="num" id="s-code" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000">
+    <button class="btn red" id="s-go">Kirim</button>
+    <div class="bar"><i id="s-bar"></i></div>
+    <div class="stat" id="s-status"></div>
+    <div class="stat" id="s-speed"></div>
+  </section>
+
+</div>
+<div id="toast"></div>
+
+<script>
+(function () {
+'use strict';
+var $ = function (id) { return document.getElementById(id); };
+var CH = 16384;                 // ukuran potongan transfer
+var HIGH = 1024 * 1024;         // batas buffer kirim sebelum jeda
+var MAXB = 60 * 1048576;        // batas rekaman 60 MB (hemat RAM iPhone lama)
+
+/* ---------- Util ---------- */
+function fmt(n) { return n < 1048576 ? Math.max(1, Math.round(n / 1024)) + ' KB' : (n / 1048576).toFixed(2) + ' MB'; }
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function clock(sec) { sec = Math.floor(sec); return pad(Math.floor(sec / 60)) + ':' + pad(sec % 60); }
+var toastT;
+function toast(msg) { var t = $('toast'); t.textContent = msg; t.className = 'on'; clearTimeout(toastT); toastT = setTimeout(function () { t.className = ''; }, 3200); }
+function loadScript(urls, check) {
+  return new Promise(function (res, rej) {
+    var i = 0;
+    (function next() {
+      if (i >= urls.length) return rej(new Error('Gagal memuat pustaka. Periksa koneksi internet.'));
+      var s = document.createElement('script');
+      s.src = urls[i++];
+      s.onload = function () { if (check()) res(); else { s.remove(); next(); } };
+      s.onerror = function () { s.remove(); next(); };
+      document.head.appendChild(s);
+    })();
+  });
+}
+var peerLib = null;
+function loadPeer() {
+  if (!peerLib) peerLib = loadScript(['libs/peerjs.min.js', 'https://cdn.jsdelivr.net/npm/peerjs@1.3.2/dist/peerjs.min.js', 'https://unpkg.com/peerjs@1.3.2/dist/peerjs.min.js'],
+    function () { return typeof window.Peer === 'function'; }).catch(function (e) { peerLib = null; throw e; });
+  return peerLib;
+}
+
+/* ---------- Navigasi ---------- */
+var updatePending = false, rec = null;
+function show(v) {
+  ['home', 'recv', 'send'].forEach(function (n) { $('v-' + n).hidden = (n !== v); });
+  if (v === 'home') { if (updatePending && !rec) return location.reload(); refreshList(); }
+}
+Array.prototype.forEach.call(document.querySelectorAll('[data-back]'), function (b) { b.onclick = function () { stopNet(); show('home'); }; });
+$('b-recv').onclick = function () { if (rec) return toast('Hentikan rekaman dulu'); show('recv'); startReceive(); };
+
+/* ---------- IndexedDB (ArrayBuffer, buka ulang otomatis) ---------- */
+var db = null;
+function openDB() {
+  return new Promise(function (res, rej) {
+    if (db) return res(db);
+    var r = indexedDB.open('rekam', 1);
+    r.onupgradeneeded = function () { r.result.createObjectStore('recs', { keyPath: 'name' }); };
+    r.onsuccess = function () { db = r.result; db.onclose = db.onversionchange = function () { db = null; }; res(db); };
+    r.onerror = function () { rej(r.error); };
+  });
+}
+function dbDo(mode, fn, retry) {
+  return openDB().then(function (d) {
+    return new Promise(function (res, rej) {
+      var t = d.transaction('recs', mode), out = fn(t.objectStore('recs'));
+      t.oncomplete = function () { res(out && ('result' in out) ? out.result : out); };
+      t.onerror = t.onabort = function () { rej(t.error); };
+    });
+  }).catch(function (e) { db = null; if (!retry) return dbDo(mode, fn, true); throw e; });
+}
+function wavInfo(buf) {
+  try {
+    var v = new DataView(buf);
+    if (v.getUint32(0, false) !== 0x52494646) return { rate: 0, dur: 0 };
+    var rate = v.getUint32(24, true);
+    return { rate: rate, dur: rate ? (buf.byteLength - 44) / (rate * 2) : 0 };
+  } catch (e) { return { rate: 0, dur: 0 }; }
+}
+function putRec(name, buf, mime) {
+  var wi = wavInfo(buf);
+  return dbDo('readwrite', function (s) { return s.put({ name: name, size: buf.byteLength, dur: wi.dur, rate: wi.rate, mime: mime || 'audio/wav', added: Date.now(), data: buf }); });
+}
+function getRec(name) { return dbDo('readonly', function (s) { return s.get(name); }); }
+function delRec(name) { return dbDo('readwrite', function (s) { return s.delete(name); }); }
+function listRecs() {
+  return dbDo('readonly', function (s) {
+    var items = [], rq = s.openCursor();
+    rq.onsuccess = function () { var c = rq.result; if (c) { var v = c.value; items.push({ name: v.name, size: v.size, dur: v.dur, rate: v.rate, added: v.added }); c.continue(); } };
+    return { result: items };
+  });
+}
+function uniqueName(name) {
+  var m = name.match(/^(.*?)(\.[^.]*)?$/), base = m[1], ext = m[2] || '', n = 1;
+  return (function tryName(cand) {
+    return getRec(cand).then(function (x) { return x ? tryName(base + ' (' + (++n) + ')' + ext) : cand; });
+  })(name);
+}
+
+function refreshList() {
+  var box = $('list');
+  listRecs().then(function (items) {
+    box.innerHTML = '';
+    if (!items.length) { box.innerHTML = '<div class="empty">Belum ada rekaman. Tekan tombol merah untuk mulai.</div>'; return; }
+    items.sort(function (a, b) { return b.added - a.added; });
+    items.forEach(function (it) {
+      var d = document.createElement('div'); d.className = 'item';
+      var n = document.createElement('div'); n.className = 'name'; n.textContent = it.name.replace(/\.[^.]+$/, '');
+      var m = document.createElement('div'); m.className = 'meta';
+      m.textContent = clock(it.dur || 0) + '  ·  ' + fmt(it.size) + (it.rate ? '  ·  ' + (it.rate / 1000) + ' kHz' : '');
+      var a = document.createElement('div'); a.className = 'acts';
+      var p = document.createElement('button'); p.className = 'btn red sm'; p.textContent = 'Putar'; p.onclick = function () { playRec(it.name); };
+      var s = document.createElement('button'); s.className = 'btn line sm'; s.textContent = 'Kirim'; s.onclick = function () { openSend(it); };
+      var x = document.createElement('button'); x.className = 'btn line sm'; x.textContent = 'Hapus';
+      x.onclick = function () { if (confirm('Hapus rekaman ini dari telepon ini?')) delRec(it.name).then(function () { stopPlayer(); refreshList(); }); };
+      a.appendChild(p); a.appendChild(s); a.appendChild(x);
+      d.appendChild(n); d.appendChild(m); d.appendChild(a); box.appendChild(d);
+    });
+  }).catch(function () { box.innerHTML = '<div class="empty err">Penyimpanan tidak bisa dibuka. Tutup lalu buka ulang aplikasi.</div>'; });
+}
+
+/* ---------- Mikrofon & Audio (tanpa MediaRecorder, kompatibel iOS 12) ---------- */
+var actx = null, stream = null, quality = 16000, tm = 0;
+
+function unlockAudio() {
+  var AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return false;
+  if (!actx) actx = new AC();
+  if (actx.resume) actx.resume();
+  try { var b = actx.createBuffer(1, 1, 22050), s = actx.createBufferSource(); s.buffer = b; s.connect(actx.destination); if (s.start) s.start(0); else s.noteOn(0); } catch (e) {}
+  return true;
+}
+function micLive() {
+  if (!stream) return false;
+  var t = stream.getAudioTracks();
+  for (var i = 0; i < t.length; i++) if (t[i].readyState === 'live') return true;
+  return false;
+}
+function setMicUI(on) {
+  $('dot').className = 'dot' + (on ? ' on' : '');
+  $('micst').textContent = on ? 'Mikrofon siap' : 'Mikrofon belum aktif';
+  $('micbtn').textContent = on ? 'Matikan' : 'Aktifkan';
+}
+function releaseMic() {
+  if (stream) { try { stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} }
+  stream = null; setMicUI(false);
+}
+function micError(e) {
+  var n = (e && e.name) || '', msg;
+  if (n === 'NoAPI') msg = navigator.standalone
+    ? 'Di iOS 12, mikrofon tidak bisa dipakai dari ikon Home Screen. Buka alamat web Rekam lewat Safari biasa.'
+    : 'Browser ini tidak mendukung mikrofon, atau alamat bukan HTTPS.';
+  else if (n === 'NotAllowedError' || n === 'PermissionDeniedError' || n === 'SecurityError')
+    msg = 'Izin mikrofon ditolak. Tutup tab, buka lagi, lalu pilih Izinkan. Cek juga Pengaturan > Safari > Mikrofon (pilih Tanya atau Izinkan).';
+  else if (n === 'NotFoundError' || n === 'DevicesNotFoundError') msg = 'Mikrofon tidak ditemukan.';
+  else if (n === 'NotReadableError' || n === 'TrackStartError') msg = 'Mikrofon sedang dipakai aplikasi lain (telepon, FaceTime, dll). Tutup dulu lalu coba lagi.';
+  else msg = 'Mikrofon gagal diaktifkan (' + (n || 'error') + ').';
+  showBanner(msg); toast('Mikrofon gagal diaktifkan');
+}
+function showBanner(msg) { var b = $('banner'); b.textContent = msg; b.hidden = !msg; }
+
+// HARUS dipanggil langsung dari sentuhan pengguna (syarat iOS)
+function ensureMic() {
+  if (!unlockAudio()) return Promise.reject({ name: 'NoAPI' });
+  if (micLive()) return Promise.resolve();
+  var md = navigator.mediaDevices;
+  if (!(md && md.getUserMedia)) return Promise.reject({ name: 'NoAPI' });
+  return md.getUserMedia({ audio: true }).then(function (s) {
+    stream = s; showBanner('');
+    var tr = s.getAudioTracks()[0];
+    if (tr) tr.onended = function () { stream = null; setMicUI(false); };
+    setMicUI(true);
+  });
+}
+$('micbtn').onclick = function () {
+  if (rec) return toast('Hentikan rekaman dulu');
+  if (micLive()) { releaseMic(); return; }
+  ensureMic().then(function () { toast('Mikrofon aktif'); }).catch(micError);
+};
+
+Array.prototype.forEach.call(document.querySelectorAll('#q button'), function (b) {
+  b.onclick = function () {
+    if (rec) return;
+    Array.prototype.forEach.call(document.querySelectorAll('#q button'), function (x) { x.className = ''; });
+    b.className = 'on'; quality = parseInt(b.getAttribute('data-r'), 10);
+  };
+});
+
+function buildWav(chunks, rate) {
+  var n = 0, i, o = 0;
+  for (i = 0; i < chunks.length; i++) n += chunks[i].length;
+  var buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  function str(off, s) { for (var k = 0; k < s.length; k++) v.setUint8(off + k, s.charCodeAt(k)); }
+  str(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); str(8, 'WAVE'); str(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  str(36, 'data'); v.setUint32(40, n * 2, true);
+  var pcm = new Int16Array(buf, 44, n);
+  for (i = 0; i < chunks.length; i++) { pcm.set(chunks[i], o); o += chunks[i].length; }
+  return buf;
+}
+
+function startRec() {
+  if (rec) return;
+  stopPlayer();
+  ensureMic().then(function () {
+    if (rec) return;
+    var srcRate = actx.sampleRate, target = quality, ratio = srcRate / target;
+    var src = actx.createMediaStreamSource(stream), proc = actx.createScriptProcessor(4096, 1, 1);
+    var pos = 0, acc = 0, cnt = 0;
+    var r = rec = { chunks: [], samples: 0, rate: target, bytes: 0, src: src, proc: proc };
+    proc.onaudioprocess = function (e) {
+      if (rec !== r) return;
+      var inp = e.inputBuffer.getChannelData(0), len = inp.length, out = new Int16Array(Math.ceil(len / ratio) + 1), oi = 0, peak = 0;
+      for (var i = 0; i < len; i++) {
+        var x = inp[i], ax = x < 0 ? -x : x;
+        if (ax > peak) peak = ax;
+        acc += x; cnt++; pos++;
+        if (pos >= ratio) {
+          var y = acc / cnt; if (y > 1) y = 1; else if (y < -1) y = -1;
+          out[oi++] = y < 0 ? y * 32768 : y * 32767;
+          acc = 0; cnt = 0; pos -= ratio;
+        }
+      }
+      r.chunks.push(oi === out.length ? out : out.subarray(0, oi));
+      r.samples += oi; r.bytes += oi * 2;
+      $('lvl').style.width = Math.min(100, peak * 140) + '%';
+      if (r.bytes > MAXB) { toast('Batas rekaman tercapai, disimpan otomatis'); stopRec(); }
+    };
+    src.connect(proc); proc.connect(actx.destination);
+    $('rec').className = 'recbtn on'; $('q').className = 'seg off';
+    tm = setInterval(function () { if (rec) $('time').textContent = clock(rec.samples / rec.rate); }, 250);
+  }).catch(micError);
+}
+
+function stopRec() {
+  if (!rec) return;
+  var r = rec; rec = null; clearInterval(tm);
+  try { r.proc.onaudioprocess = null; r.proc.disconnect(); r.src.disconnect(); } catch (e) {}
+  $('rec').className = 'recbtn'; $('q').className = 'seg'; $('lvl').style.width = '0'; $('time').textContent = '00:00';
+  if (r.samples < r.rate * 0.4) return toast('Rekaman terlalu pendek');
+  var d = new Date(), name = 'Rekaman ' + pad(d.getDate()) + '-' + pad(d.getMonth() + 1) + '-' + d.getFullYear() + ' ' + pad(d.getHours()) + '.' + pad(d.getMinutes()) + '.' + pad(d.getSeconds()) + '.wav';
+  var wav = buildWav(r.chunks, r.rate); r.chunks = null;
+  putRec(name, wav).then(function () { toast('Tersimpan'); refreshList(); }).catch(function () { toast('Gagal menyimpan. Penyimpanan penuh?'); });
+}
+$('rec').onclick = function () { if (rec) stopRec(); else startRec(); };
+
+/* ---------- Putar ---------- */
+var curUrl = null;
+function stopPlayer() {
+  var a = $('player'); try { a.pause(); } catch (e) {}
+  a.removeAttribute('src'); $('pbar').hidden = true;
+  if (curUrl) { URL.revokeObjectURL(curUrl); curUrl = null; }
+}
+function playRec(name) {
+  if (rec) return toast('Hentikan rekaman dulu');
+  releaseMic(); // supaya suara keluar lewat speaker normal, bukan earpiece
+  getRec(name).then(function (r) {
+    if (!r) return toast('Rekaman tidak ditemukan');
+    stopPlayer();
+    curUrl = URL.createObjectURL(new Blob([r.data], { type: r.mime || 'audio/wav' }));
+    var a = $('player'); a.src = curUrl;
+    $('pname').textContent = name.replace(/\.[^.]+$/, ''); $('pbar').hidden = false;
+    var p = a.play(); if (p && p.catch) p.catch(function () {});
+  }).catch(function () { toast('Gagal memutar'); });
+}
+
+/* ---------- Jaringan (WebRTC lewat PeerJS) ---------- */
+var peer = null, conn = null;
+function stopNet() { try { if (conn) conn.close(); } catch (e) {} try { if (peer) peer.destroy(); } catch (e) {} peer = conn = null; }
+function rawDC(c) { return c.dataChannel || c._dc || c.dc; }
+
+function startReceive() {
+  stopNet();
+  var st = $('r-status'), bar = $('r-bar'), sp = $('r-speed');
+  st.className = 'stat'; st.textContent = 'Menyiapkan kode…'; bar.style.width = '0'; sp.textContent = ''; $('r-code').textContent = '------';
+  loadPeer().then(function () {
+    var tries = 0;
+    (function make() {
+      var code = String(100000 + Math.floor(Math.random() * 900000));
+      peer = new Peer('rekam-' + code, { debug: 0 });
+      peer.on('open', function () { $('r-code').textContent = code.slice(0, 3) + ' ' + code.slice(3); st.textContent = 'Menunggu pengirim…'; });
+      peer.on('error', function (e) {
+        if (e.type === 'unavailable-id' && tries++ < 5) { try { peer.destroy(); } catch (x) {} return make(); }
+        st.className = 'stat err'; st.textContent = 'Gagal terhubung ke server (' + e.type + '). Periksa internet lalu coba lagi.';
+      });
+      peer.on('disconnected', function () { try { peer.reconnect(); } catch (e) {} });
+      peer.on('connection', onIncoming);
+    })();
+  }).catch(function (e) { st.className = 'stat err'; st.textContent = e.message; });
+
+  function onIncoming(c) {
+    conn = c;
+    var meta = null, buf = null, got = 0, t0 = 0;
+    st.className = 'stat'; st.textContent = 'Pengirim terhubung';
+    c.on('data', function (d) {
+      if (typeof d === 'string') {
+        var m; try { m = JSON.parse(d); } catch (e) { return; }
+        if (m.t === 'meta') {
+          if (!m.name || !(m.size > 0) || m.size > 100 * 1048576) { c.send(JSON.stringify({ t: 'err' })); return; }
+          meta = m; buf = new Uint8Array(m.size); got = 0; t0 = Date.now(); bar.style.width = '0';
+          st.textContent = 'Menerima rekaman…';
+        } else if (m.t === 'end' && meta) finish();
+        return;
+      }
+      if (!buf) return;
+      var u = d.buffer && d.byteLength !== undefined && !(d instanceof ArrayBuffer) ? new Uint8Array(d.buffer, d.byteOffset, d.byteLength) : new Uint8Array(d);
+      if (got + u.length > buf.length) return;
+      buf.set(u, got); got += u.length;
+      var dt = (Date.now() - t0) / 1000;
+      bar.style.width = (got / buf.length * 100).toFixed(1) + '%';
+      sp.textContent = fmt(got) + ' / ' + fmt(buf.length) + (dt > 0.2 ? '  ' + (got / 1048576 / dt).toFixed(2) + ' MB/s' : '');
+      if (got === buf.length) finish();
+    });
+    c.on('close', function () { if (buf && got < buf.length) { st.className = 'stat err'; st.textContent = 'Koneksi terputus sebelum selesai.'; } });
+    c.on('error', function () { st.className = 'stat err'; st.textContent = 'Koneksi bermasalah.'; });
+    function finish() {
+      if (!meta) return;
+      var name = String(meta.name).replace(/[\/\\]/g, '_').slice(0, 120), mime = meta.mime || 'audio/wav', data = buf.buffer, ok = got === buf.length;
+      meta = null; buf = null;
+      if (!ok) { st.className = 'stat err'; st.textContent = 'File tidak lengkap.'; c.send(JSON.stringify({ t: 'err' })); return; }
+      uniqueName(name).then(function (nm) { return putRec(nm, data, mime); }).then(function () {
+        st.className = 'stat'; st.textContent = 'Tersimpan. Bisa menerima rekaman lain.';
+        c.send(JSON.stringify({ t: 'ok' })); toast('Rekaman diterima');
+      }).catch(function () {
+        st.className = 'stat err'; st.textContent = 'Gagal menyimpan. Penyimpanan mungkin penuh.';
+        c.send(JSON.stringify({ t: 'err' }));
+      });
+    }
+  }
+}
+
+/* Pengirim */
+var sendItem = null;
+function openSend(it) {
+  if (rec) return toast('Hentikan rekaman dulu');
+  sendItem = it;
+  $('s-file').textContent = it.name.replace(/\.[^.]+$/, '') + '  (' + clock(it.dur || 0) + ', ' + fmt(it.size) + ')';
+  $('s-status').textContent = ''; $('s-speed').textContent = ''; $('s-bar').style.width = '0'; $('s-status').className = 'stat';
+  show('send');
+}
+$('s-go').onclick = function () {
+  var code = $('s-code').value.replace(/\D/g, '');
+  var st = $('s-status'), bar = $('s-bar'), sp = $('s-speed');
+  st.className = 'stat'; sp.textContent = ''; bar.style.width = '0';
+  if (code.length !== 6) { st.className = 'stat err'; st.textContent = 'Kode harus 6 angka.'; return; }
+  if (!sendItem) return;
+  stopNet(); st.textContent = 'Membaca rekaman…';
+  getRec(sendItem.name).then(function (r) {
+    if (!r) { st.className = 'stat err'; st.textContent = 'Rekaman tidak ditemukan.'; return; }
+    st.textContent = 'Menghubungkan…';
+    return loadPeer().then(function () {
+      peer = new Peer({ debug: 0 });
+      var timer = setTimeout(function () { st.className = 'stat err'; st.textContent = 'Tidak tersambung. Periksa kode dan jaringan.'; }, 20000);
+      peer.on('error', function (e) {
+        clearTimeout(timer); st.className = 'stat err';
+        st.textContent = e.type === 'peer-unavailable' ? 'Kode tidak ditemukan. Pastikan penerima masih menampilkan kode.' : 'Gagal: ' + e.type;
+      });
+      peer.on('open', function () {
+        conn = peer.connect('rekam-' + code, { serialization: 'raw', reliable: true });
+        conn.on('open', function () { clearTimeout(timer); transfer(conn, r.name, r.data, r.mime); });
+        conn.on('data', function (d) {
+          if (typeof d !== 'string') return;
+          var m; try { m = JSON.parse(d); } catch (e) { return; }
+          if (m.t === 'ok') { bar.style.width = '100%'; st.textContent = 'Selesai. Rekaman sudah sampai.'; }
+          if (m.t === 'err') { st.className = 'stat err'; st.textContent = 'Penerima gagal menyimpan file.'; }
+        });
+      });
+    });
+  }).catch(function (e) { st.className = 'stat err'; st.textContent = (e && e.message) || 'Gagal mengirim.'; });
+};
+
+function transfer(c, name, data, mime) {
+  var st = $('s-status'), bar = $('s-bar'), sp = $('s-speed');
+  var dc = rawDC(c), size = data.byteLength, off = 0, t0 = Date.now();
+  st.textContent = 'Mengirim…';
+  dc.send(JSON.stringify({ t: 'meta', name: name, size: size, mime: mime || 'audio/wav' }));
+  (function pump() {
+    if (!dc || dc.readyState !== 'open') return;
+    while (off < size) {
+      if (dc.bufferedAmount > HIGH) { setTimeout(pump, 6); break; }
+      var end = Math.min(off + CH, size);
+      dc.send(data.slice(off, end)); off = end;
+    }
+    var sent = Math.max(0, off - dc.bufferedAmount), dt = (Date.now() - t0) / 1000;
+    bar.style.width = (sent / size * 100).toFixed(1) + '%';
+    sp.textContent = fmt(sent) + ' / ' + fmt(size) + (dt > 0.2 ? '  ' + (sent / 1048576 / dt).toFixed(2) + ' MB/s' : '');
+    if (off >= size) { if (dc.bufferedAmount > 0) setTimeout(pump, 30); else { st.textContent = 'Menunggu konfirmasi…'; dc.send(JSON.stringify({ t: 'end' })); } }
+  })();
+}
+
+/* ---------- Update otomatis ---------- */
+function hashStr(t) { var h = 5381; for (var i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return String(h); }
+function checkUpdate() {
+  if (!navigator.onLine) return;
+  fetch('index.html?v=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : null; }).then(function (t) {
+    if (!t) return;
+    var h = hashStr(t), old = null;
+    try { old = localStorage.getItem('rekam-ver'); localStorage.setItem('rekam-ver', h); } catch (e) {}
+    if (old && old !== h) {
+      updatePending = true;
+      if (!$('v-home').hidden && !rec) { toast('Memperbarui aplikasi…'); setTimeout(function () { location.reload(); }, 600); }
+      else toast('Update siap, dipasang saat kembali ke beranda');
+    }
+  }).catch(function () {});
+}
+if ('serviceWorker' in navigator) {
+  var hadController = !!navigator.serviceWorker.controller, swReloaded = false;
+  navigator.serviceWorker.register('sw.js').then(function (reg) {
+    reg.update();
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { reg.update(); checkUpdate(); } });
+  }).catch(function () {});
+  navigator.serviceWorker.addEventListener('controllerchange', function () {
+    if (swReloaded || !hadController) return;
+    swReloaded = true; updatePending = true;
+    if (!$('v-home').hidden && !rec) location.reload();
+  });
+}
+
+/* iOS menghentikan mikrofon saat layar terkunci / pindah aplikasi: simpan otomatis lalu lepas mikrofon */
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) { if (rec) { stopRec(); toast('Rekaman disimpan karena aplikasi ditinggalkan'); } releaseMic(); }
+});
+document.addEventListener('touchmove', function (e) { if (!e.target.closest || !e.target.closest('.scroll')) e.preventDefault(); }, { passive: false });
+document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+
+function resize() { var a = $('app'); a.style.width = window.innerWidth + 'px'; a.style.height = window.innerHeight + 'px'; }
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', function () { setTimeout(resize, 300); });
+resize();
+
+/* ---------- Mulai ---------- */
+var hasMic = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+if (!hasMic) micError({ name: 'NoAPI' });
+else if (location.protocol !== 'https:' && location.hostname !== 'localhost') showBanner('Alamat harus HTTPS agar mikrofon bisa dipakai.');
+else if (navigator.standalone) showBanner('Mode Home Screen: di iOS 12 mikrofon mungkin tidak berfungsi. Kalau gagal, buka lewat Safari biasa.');
+checkUpdate();
+refreshList();
+})();
+</script>
+</body>
+</html>

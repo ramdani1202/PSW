@@ -1,0 +1,19 @@
+REKAM - perekam suara PWA (iOS 12 / iPhone 6)
+
+PASANG
+1. Unggah SEMUA isi folder ini ke GitHub (repo terpisah dari Nyala), aktifkan GitHub Pages (HTTPS wajib).
+2. iPhone 6 / iOS 12: BUKA LEWAT SAFARI BIASA untuk merekam.
+   iOS 12 tidak mengizinkan mikrofon di mode Home Screen (baru bisa mulai iOS 13.4).
+3. Pertama kali tekan Aktifkan / tombol merah, pilih Izinkan.
+   Jika terlanjur menolak: Pengaturan > Safari > Mikrofon > Tanya/Izinkan, tutup tab, buka lagi.
+
+KIRIM
+- Telepon penerima: Terima -> muncul kode 6 angka.
+- Telepon pengirim: pilih rekaman -> Kirim -> masukkan kode.
+
+CATATAN
+- Rekaman format WAV mono. Hemat 16 kHz ~ 1,9 MB/menit, Jernih 32 kHz ~ 3,8 MB/menit.
+- Rekaman berhenti dan tersimpan otomatis jika layar terkunci atau pindah aplikasi.
+- Penyimpanan Safari dan Home Screen terpisah. Kirim rekaman penting ke telepon lain sebagai cadangan.
+- Update otomatis: ganti file di GitHub, aplikasi memperbarui diri saat dibuka.
+- Belum diuji di iPhone 6 sungguhan.
